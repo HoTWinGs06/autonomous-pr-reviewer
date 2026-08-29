@@ -12,6 +12,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from app.config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
 from app.diff.parser import ChangedFile, Hunk
 from app.linter.runner import LintIssue
+from app.llm.schema import ReviewCommentSchema
 
 logger = logging.getLogger(__name__)
 
@@ -125,18 +126,28 @@ def review_file(
             return []
 
         comments = []
+        valid_lines = {ln for h in file.hunks for ln in h.added_lines}
         for item in parsed:
             if not isinstance(item, dict):
                 continue
-            line = item.get("line")
-            body = item.get("body", "")
-            if line is None or not body:
+            try:
+                schema = ReviewCommentSchema.model_validate(item)
+            except Exception as e:
+                logger.warning(f"LLM comment failed schema validation for {file.path}: {e}")
                 continue
+
+            # Guard against hallucinated line numbers
+            if valid_lines and schema.line not in valid_lines:
+                logger.warning(
+                    f"LLM suggested line {schema.line} not in added lines {sorted(valid_lines)[:10]}..."
+                )
+                continue
+
             comments.append(ReviewComment(
                 file_path=file.path,
-                line=int(line),
-                body=body[:500],
-                severity=item.get("severity", "warning"),
+                line=schema.line,
+                body=schema.body,
+                severity=schema.severity,
             ))
         return comments
 

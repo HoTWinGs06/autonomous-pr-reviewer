@@ -1,16 +1,19 @@
 """Pydantic models for GitHub webhook payloads."""
 from __future__ import annotations
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional
 
 
 class Repository(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
     full_name: str
     clone_url: str
     default_branch: str = "main"
 
 
 class PullRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
     number: int
     title: str
     state: str
@@ -19,15 +22,10 @@ class PullRequest(BaseModel):
     html_url: str
     user_login: str = Field(alias="user.login")
 
-    class Config:
-        populate_by_name = True
-
 
 class WebhookPayload(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
     action: str
     pull_request: PullRequest
     repository: Repository
     sender_login: str = Field(alias="sender.login")
-
-    class Config:
-        populate_by_name = True

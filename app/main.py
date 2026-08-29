@@ -8,7 +8,7 @@ from github import Github
 from app.config import GITHUB_TOKEN, WEBHOOK_SECRET, AUTO_FIX_ENABLED
 from app.webhook.security import verify_signature
 from app.webhook.models import WebhookPayload
-from app.diff.parser import parse_pr_files, is_docs_only_pr
+from app.diff.parser import FileType, parse_pr_files, is_docs_only_pr
 from app.linter.runner import run_linters_on_files
 from app.llm.reviewer import review_pr
 from app.llm.poster import post_inline_comments, post_summary_comment, approve_pr
@@ -66,11 +66,23 @@ async def process_pr(payload: WebhookPayload) -> dict:
     classified = parse_pr_files(raw_files)
     logger.info(f"Classified {len(classified)} files ({sum(1 for f in classified if f.is_code)} code)")
 
-    # Step 2: Auto-approve docs-only PRs
+    # Step 2: Auto-approve docs-only PRs (conservative guardrails)
     if is_docs_only_pr(classified):
-        logger.info("Docs-only PR detected, auto-approving")
-        approved = approve_pr(repo_name, pr_number, "LGTM — documentation/config changes only \U0001f916")
-        return {"status": "auto_approved", "pr": pr_number}
+        # Guard 1: Max 50 changed files
+        if len(classified) > 50:
+            logger.info(f"Docs-only PR has {len(classified)} files, too many for auto-approval")
+        else:
+            # Guard 2: Fail closed — if any file is ambiguous, treat as code
+            ambiguous = [f.path for f in classified if f.file_type == FileType.UNKNOWN]
+            if ambiguous:
+                logger.info(f"Ambiguous files detected: {ambiguous}, skipping auto-approval")
+            else:
+                logger.info("Docs-only PR detected, auto-approving")
+                approved = approve_pr(
+                    repo_name, pr_number,
+                    "LGTM — documentation/config changes only \U0001f916"
+                )
+                return {"status": "auto_approved", "pr": pr_number}
 
     # Step 3: Fetch file contents and run linters
     contents = _fetch_file_contents(repo_name, pr_number, classified)
