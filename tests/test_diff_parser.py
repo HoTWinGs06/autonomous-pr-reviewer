@@ -98,14 +98,24 @@ class TestParsePatch:
 class TestDocsOnlyPr:
     def test_docs_only(self):
         files = [
-            ChangedFile(path="README.md", status="modified", file_type=FileType.MARKDOWN, is_code=False),
+            ChangedFile(
+                path="README.md",
+                status="modified",
+                file_type=FileType.MARKDOWN,
+                is_code=False,
+            ),
             ChangedFile(path="config.yml", status="modified", file_type=FileType.YAML, is_code=False),
         ]
         assert is_docs_only_pr(files) is True
 
     def test_mixed_files(self):
         files = [
-            ChangedFile(path="README.md", status="modified", file_type=FileType.MARKDOWN, is_code=False),
+            ChangedFile(
+                path="README.md",
+                status="modified",
+                file_type=FileType.MARKDOWN,
+                is_code=False,
+            ),
             ChangedFile(path="main.py", status="modified", file_type=FileType.PYTHON, is_code=True),
         ]
         assert is_docs_only_pr(files) is False

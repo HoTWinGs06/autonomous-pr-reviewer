@@ -4,8 +4,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 
-import pytest
-
 from app.webhook.security import verify_signature
 from app.webhook.models import WebhookPayload
 

@@ -1,9 +1,7 @@
 """Tests for SQLite memory store: hashing, dedup, save, and stats."""
 from __future__ import annotations
 
-import os
 
-import pytest
 
 from app.memory.store import (
     _ensure_db,
