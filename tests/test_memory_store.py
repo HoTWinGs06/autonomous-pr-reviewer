@@ -15,6 +15,7 @@ from app.memory.store import (
 
 
 class TestCommentHash:
+
     def test_hash_stable(self):
         h1 = compute_comment_hash("main.py", 10, "Use type hints")
         h2 = compute_comment_hash("main.py", 10, "Use type hints")
@@ -29,7 +30,6 @@ class TestCommentHash:
         h1 = compute_comment_hash("main.py", 10, "Use type hints")
         h2 = compute_comment_hash("main.py", 11, "Use type hints")
         assert h1 != h2
-
 
 class TestMemoryOperations:
     def test_save_and_dedup(self):

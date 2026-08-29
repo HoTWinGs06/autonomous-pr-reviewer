@@ -1,8 +1,6 @@
 """Tests for diff parsing and file classification."""
 from __future__ import annotations
 
-import pytest
-
 from app.diff.parser import (
     classify_file,
     parse_patch,

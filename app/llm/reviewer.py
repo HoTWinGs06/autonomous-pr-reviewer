@@ -10,7 +10,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.config import LLM_API_KEY, LLM_MODEL, LLM_BASE_URL
-from app.diff.parser import ChangedFile, Hunk
+from app.diff.parser import ChangedFile
 from app.linter.runner import LintIssue
 from app.llm.schema import ReviewCommentSchema
 
@@ -139,7 +139,8 @@ def review_file(
             # Guard against hallucinated line numbers
             if valid_lines and schema.line not in valid_lines:
                 logger.warning(
-                    f"LLM suggested line {schema.line} not in added lines {sorted(valid_lines)[:10]}..."
+                    f"LLM suggested line {schema.line} not in added lines "
+                    f"{sorted(valid_lines)[:10]}..."
                 )
                 continue
 
@@ -190,6 +191,8 @@ def review_pr(
     if result.comments:
         error_count = sum(1 for c in result.comments if c.severity == "error")
         warn_count = sum(1 for c in result.comments if c.severity == "warning")
-        result.summary = f"Found {len(result.comments)} issues ({error_count} errors, {warn_count} warnings) across {len(code_files)} files."
-
+        result.summary = (
+            f"Found {len(result.comments)} issues ({error_count} errors, "
+            f"{warn_count} warnings) across {len(code_files)} files."
+        )
     return result

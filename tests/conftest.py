@@ -1,10 +1,7 @@
 """Shared fixtures and helpers for the test suite."""
 from __future__ import annotations
 
-import os
 import sys
-import sqlite3
-import tempfile
 from pathlib import Path
 
 import pytest

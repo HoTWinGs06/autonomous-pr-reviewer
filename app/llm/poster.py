@@ -72,11 +72,14 @@ def post_inline_comments(
             )
             try:
                 pr.create_issue_comment(
-                    f"**[{comment.severity.upper()}]** `{comment.file_path}:{comment.line}`\n\n{comment.body}"
+                    f"**[{comment.severity.upper()}]** "
+                    f"`{comment.file_path}:{comment.line}`\n\n{comment.body}"
                 )
                 result["posted"] += 1
             except GithubException as e2:
-                result["errors"].append(f"Failed to post comment on {comment.file_path}:{comment.line}: {e2}")
+                result["errors"].append(
+                    f"Failed to post comment on {comment.file_path}:{comment.line}: {e2}"
+                )
                 result["skipped"] += 1
 
     return result

@@ -7,7 +7,7 @@ import os
 import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Generator, List, Optional
+from typing import Generator, List
 
 from app.config import DB_PATH
 
@@ -126,7 +126,10 @@ def save_review_comment(
     with get_connection() as conn:
         cursor = conn.execute(
             """INSERT INTO reviews
-               (pr_number, repo, file_path, line, comment_hash, body, severity, status, created_at, updated_at)
+               (
+        pr_number, repo, file_path, line, comment_hash,
+        body, severity, status, created_at, updated_at
+    )
                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (pr_number, repo, file_path, line, comment_hash, body, severity, status, now, now),
         )
@@ -188,5 +191,7 @@ def get_stats() -> dict:
     return {
         "total_reviews": total,
         "by_status": {row["status"]: row["cnt"] for row in by_status},
-        "by_severity": {row["severity"]: row["cnt"] for row in by_severity},
+        "by_severity": {
+            row["severity"]: row["cnt"] for row in by_severity
+        },
     }

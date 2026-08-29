@@ -1,11 +1,10 @@
 """FastAPI application — full PR review pipeline."""
-import asyncio
 import logging
 from fastapi import FastAPI, Request, HTTPException, Header
 from typing import Optional
 from github import Github
 
-from app.config import GITHUB_TOKEN, WEBHOOK_SECRET, AUTO_FIX_ENABLED
+from app.config import GITHUB_TOKEN, WEBHOOK_SECRET
 from app.webhook.security import verify_signature
 from app.webhook.models import WebhookPayload
 from app.diff.parser import FileType, parse_pr_files, is_docs_only_pr
@@ -37,7 +36,9 @@ def _fetch_file_contents(repo_full_name: str, pr_number: int, files: list) -> di
                 try:
                     blob = repo.get_contents(f.path, ref=pr.head.sha)
                     import base64
-                    contents[f.path] = base64.b64decode(blob.content).decode("utf-8", errors="replace")
+                    contents[f.path] = base64.b64decode(blob.content).decode(
+                        "utf-8", errors="replace"
+                    )
                 except Exception as e:
                     logger.warning(f"Could not fetch {f.path}: {e}")
     except Exception as e:
@@ -64,7 +65,10 @@ async def process_pr(payload: WebhookPayload) -> dict:
         return {"status": "error", "detail": str(e)}
 
     classified = parse_pr_files(raw_files)
-    logger.info(f"Classified {len(classified)} files ({sum(1 for f in classified if f.is_code)} code)")
+    logger.info(
+        f"Classified {len(classified)} files "
+        f"({sum(1 for f in classified if f.is_code)} code)"
+    )
 
     # Step 2: Auto-approve docs-only PRs (conservative guardrails)
     if is_docs_only_pr(classified):
@@ -78,7 +82,7 @@ async def process_pr(payload: WebhookPayload) -> dict:
                 logger.info(f"Ambiguous files detected: {ambiguous}, skipping auto-approval")
             else:
                 logger.info("Docs-only PR detected, auto-approving")
-                approved = approve_pr(
+                approve_pr(
                     repo_name, pr_number,
                     "LGTM — documentation/config changes only \U0001f916"
                 )
@@ -119,8 +123,10 @@ async def process_pr(payload: WebhookPayload) -> dict:
 
     # Post inline comments
     if review.comments:
-        unique_comments = [c for c in review.comments
-                          if not is_duplicate_comment(repo_name, c.file_path, c.line, c.body)]
+        unique_comments = [
+            c for c in review.comments
+            if not is_duplicate_comment(repo_name, c.file_path, c.line, c.body)
+        ]
         post_result = post_inline_comments(repo_name, pr_number, head_sha, unique_comments)
         logger.info(f"Posted {post_result['posted']} comments, skipped {post_result['skipped']}")
 

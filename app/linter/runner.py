@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import tempfile
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List
 
 import docker
 from docker.errors import DockerException, ContainerError
@@ -44,7 +44,8 @@ class LintResult:
 LINTER_CONFIG = {
     FileType.PYTHON: (
         DOCKER_LINTER_IMAGE_PYTHON,
-        "pip install -q flake8 mypy && flake8 --format=%(path)s:%(row)d:%(col)d:%(code)s:%(text)s {file}",
+        "pip install -q flake8 mypy && flake8 "
+        "--format=%(path)s:%(row)d:%(col)d:%(code)s:%(text)s {file}",
     ),
     FileType.JAVASCRIPT: (
         DOCKER_LINTER_IMAGE_JS,
@@ -52,7 +53,10 @@ LINTER_CONFIG = {
     ),
     FileType.TYPESCRIPT: (
         DOCKER_LINTER_IMAGE_JS,
-        "npm install -g typescript eslint @typescript-eslint/parser 2>/dev/null && eslint --format compact {file} || true",
+        (
+            "npm install -g typescript eslint @typescript-eslint/parser 2>/dev/null && "
+            "eslint --format compact {file} || true"
+        ),
     ),
 }
 
@@ -190,7 +194,10 @@ def run_linters_on_files(files: List[ChangedFile], contents: dict[str, str]) -> 
     """
     aggregated = LintResult()
 
-    code_files = [f for f in files if f.is_code and f.file_type in LINTER_CONFIG]
+    code_files = [
+        f for f in files
+        if f.is_code and f.file_type in LINTER_CONFIG
+    ]
 
     for cf in code_files:
         content = contents.get(cf.path, "")

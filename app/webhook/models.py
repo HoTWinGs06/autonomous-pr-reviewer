@@ -1,9 +1,8 @@
 """Pydantic models for GitHub webhook payloads."""
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional
 
+from pydantic import BaseModel, Field, ConfigDict
 
 class Repository(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
