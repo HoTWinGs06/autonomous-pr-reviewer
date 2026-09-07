@@ -102,7 +102,12 @@ class TestDocsOnlyPr:
                 file_type=FileType.MARKDOWN,
                 is_code=False,
             ),
-            ChangedFile(path="config.yml", status="modified", file_type=FileType.YAML, is_code=False),
+            ChangedFile(
+                path="config.yml",
+                status="modified",
+                file_type=FileType.YAML,
+                is_code=False,
+            ),
         ]
         assert is_docs_only_pr(files) is True
 

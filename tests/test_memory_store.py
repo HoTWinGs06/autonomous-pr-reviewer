@@ -1,8 +1,6 @@
 """Tests for SQLite memory store: hashing, dedup, save, and stats."""
 from __future__ import annotations
 
-
-
 from app.memory.store import (
     _ensure_db,
     compute_comment_hash,
@@ -30,6 +28,7 @@ class TestCommentHash:
         h1 = compute_comment_hash("main.py", 10, "Use type hints")
         h2 = compute_comment_hash("main.py", 11, "Use type hints")
         assert h1 != h2
+
 
 class TestMemoryOperations:
     def test_save_and_dedup(self):
