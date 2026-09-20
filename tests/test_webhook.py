@@ -81,7 +81,25 @@ class TestWebhookEndpoint:
             "sender.login": "joel",
         }).encode()
 
-    def test_missing_signature_rejected(self, client):
+    @staticmethod
+    def _fresh_client(monkeypatch, secret: str):
+        """Reload app.config/app.main with a controlled WEBHOOK_SECRET.
+
+        app.config reads env vars at import time, so tests must reload
+        the modules after changing the environment — otherwise results
+        depend on whether a local .env exists (CI has none).
+        """
+        monkeypatch.setenv("WEBHOOK_SECRET", secret)
+        import importlib
+        import app.config
+        importlib.reload(app.config)
+        import app.main
+        importlib.reload(app.main)
+        from fastapi.testclient import TestClient
+        return TestClient(app.main.app)
+
+    def test_missing_signature_rejected(self, monkeypatch):
+        client = self._fresh_client(monkeypatch, "testsecret")
         resp = client.post(
             "/webhook",
             content=self._make_payload(),
@@ -89,7 +107,8 @@ class TestWebhookEndpoint:
         )
         assert resp.status_code == 401
 
-    def test_invalid_signature_rejected(self, client):
+    def test_invalid_signature_rejected(self, monkeypatch):
+        client = self._fresh_client(monkeypatch, "testsecret")
         resp = client.post(
             "/webhook",
             content=self._make_payload(),
@@ -100,16 +119,8 @@ class TestWebhookEndpoint:
         )
         assert resp.status_code == 401
 
-    def test_non_pr_event_ignored(self, client, monkeypatch):
-        monkeypatch.setenv("WEBHOOK_SECRET", "")
-        # Re-import to pick up empty secret
-        import importlib
-        import app.config
-        importlib.reload(app.config)
-        import app.main
-        importlib.reload(app.main)
-        from fastapi.testclient import TestClient
-        fresh_client = TestClient(app.main.app)
+    def test_non_pr_event_ignored(self, monkeypatch):
+        fresh_client = self._fresh_client(monkeypatch, "")
 
         resp = fresh_client.post(
             "/webhook",
@@ -119,16 +130,9 @@ class TestWebhookEndpoint:
         assert resp.status_code == 200
         assert resp.json()["status"] == "ignored"
 
-    def test_valid_signature_accepted(self, client, monkeypatch):
+    def test_valid_signature_accepted(self, monkeypatch):
         secret = "testsecret"
-        monkeypatch.setenv("WEBHOOK_SECRET", secret)
-        import importlib
-        import app.config
-        importlib.reload(app.config)
-        import app.main
-        importlib.reload(app.main)
-        from fastapi.testclient import TestClient
-        fresh_client = TestClient(app.main.app)
+        fresh_client = self._fresh_client(monkeypatch, secret)
 
         payload = self._make_payload()
         sig = "sha256=" + hmac.new(secret.encode(), payload, hashlib.sha256).hexdigest()
@@ -145,15 +149,8 @@ class TestWebhookEndpoint:
         data = resp.json()
         assert data["status"] in ("reviewed", "error")
 
-    def test_ignored_action(self, client, monkeypatch):
-        monkeypatch.setenv("WEBHOOK_SECRET", "")
-        import importlib
-        import app.config
-        importlib.reload(app.config)
-        import app.main
-        importlib.reload(app.main)
-        from fastapi.testclient import TestClient
-        fresh_client = TestClient(app.main.app)
+    def test_ignored_action(self, monkeypatch):
+        fresh_client = self._fresh_client(monkeypatch, "")
 
         import json
         payload = json.dumps({
