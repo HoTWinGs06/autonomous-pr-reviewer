@@ -1,0 +1,14 @@
+[Unit]
+Description=Autonomous PR Reviewer (FastAPI webhook bot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=%h/projects/autonomous-pr-reviewer
+EnvironmentFile=%h/projects/autonomous-pr-reviewer/.env
+ExecStart=%h/projects/autonomous-pr-reviewer/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=default.target

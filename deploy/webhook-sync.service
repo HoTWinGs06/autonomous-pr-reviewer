@@ -1,0 +1,12 @@
+[Unit]
+Description=Keep GitHub webhook in sync with cloudflared tunnel URL
+After=network-online.target pr-reviewer-tunnel.service
+Wants=network-online.target
+
+[Service]
+ExecStart=%h/projects/autonomous-pr-reviewer/deploy/webhook-sync.sh
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=default.target

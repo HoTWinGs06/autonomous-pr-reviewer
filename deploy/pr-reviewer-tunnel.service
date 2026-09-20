@@ -1,0 +1,14 @@
+[Unit]
+Description=Cloudflare quick tunnel for PR Reviewer (:8000)
+After=network-online.target pr-reviewer.service
+Wants=network-online.target
+
+[Service]
+ExecStart=%h/bin/cloudflared tunnel --url http://127.0.0.1:8000 --no-autoupdate
+StandardOutput=append:%h/.local/state/pr-reviewer-tunnel.log
+StandardError=append:%h/.local/state/pr-reviewer-tunnel.log
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
