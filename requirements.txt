@@ -1,5 +1,5 @@
 fastapi>=0.110.0
-uvicorn[standard]>=0.29.0
+uvicorn[standard]>=0.53.0
 PyGithub>=2.3.0
 docker>=7.0.0
 langchain>=0.2.0
