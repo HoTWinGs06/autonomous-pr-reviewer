@@ -55,4 +55,4 @@ jobs:
       - name: Inspect image configuration
         run: |
           test "$(docker image inspect autonomous-pr-reviewer:ci --format '{{.Config.User}}')" = "appuser"
-          test "$(docker image inspect autonomous-pr-reviewer:ci --format '{{.Config.Healthcheck}}' | grep -c Health)" -ge 1
+          docker image inspect autonomous-pr-reviewer:ci --format '{{json .Config.Healthcheck.Test}}' | grep -q '127.0.0.1:8000/health'
