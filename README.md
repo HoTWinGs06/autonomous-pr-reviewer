@@ -19,7 +19,7 @@ The Autonomous PR Reviewer watches for `pull_request` events on GitHub, classifi
 - **LLM-Powered Review** — Uses an OpenAI-compatible LLM to generate specific, actionable inline review comments.
 - **Memory & Deduplication** — SQLite-backed history prevents repeating identical advice across PRs.
 - **Auto-Approval** — Automatically approves docs-only PRs.
-- **Optional Auto-Fix** — Configurable auto-fix for simple formatting issues.
+- **Optional Auto-Fix** — When enabled, applies only safe whitespace fixes (`W291`, `W292`, `W293`) through the GitHub API. Security, correctness, and mixed-rule findings are never modified automatically.
 
 ## Architecture
 
@@ -167,7 +167,8 @@ To add new languages, extend `LINTER_CONFIG` in `app/linter/runner.py` with a ne
 2. **Docs-Only PRs** — Bot auto-approves with an "LGTM" comment.
 3. **Code PRs** — Bot fetches file contents, runs sandboxed linters, sends diff + issues to the LLM.
 4. **LLM Review** — Returns structured inline comments; bot checks SQLite for duplicates, posts new comments, and summarizes findings.
-5. **Memory** — Future PRs reuse review history to reduce noise.
+5. **Optional Auto-Fix** — If `AUTO_FIX_ENABLED=true`, only whitespace-only Flake8 findings (`W291`, `W292`, `W293`) are committed to the PR branch through GitHub's Contents API.
+6. **Memory** — Future PRs reuse review history to reduce noise.
 
 ### Toggle Features
 

@@ -10,7 +10,12 @@ from app.webhook.models import WebhookPayload
 from app.diff.parser import FileType, parse_pr_files, is_docs_only_pr
 from app.linter.runner import run_linters_on_files
 from app.llm.reviewer import review_pr
-from app.llm.poster import post_inline_comments, post_summary_comment, approve_pr
+from app.llm.poster import (
+    apply_safe_fixes,
+    post_inline_comments,
+    post_summary_comment,
+    approve_pr,
+)
 from app.memory.store import is_duplicate_comment, save_review_comment
 
 logging.basicConfig(
@@ -97,6 +102,14 @@ async def process_pr(payload: WebhookPayload) -> dict:
     lint_map = {}
     for issue in lint_result.issues:
         lint_map.setdefault(issue.file_path, []).append(issue)
+
+    # Optional safe auto-fix (disabled by default; whitespace-only rules only)
+    fix_result = apply_safe_fixes(repo_name, pr_number, lint_map)
+    if fix_result["fixed"] or fix_result["errors"]:
+        logger.info(
+            "Auto-fix: fixed %s files, skipped %s, errors %s",
+            fix_result["fixed"], fix_result["skipped"], len(fix_result["errors"]),
+        )
 
     # Step 4: LLM review
     review = review_pr(classified, lint_map)
