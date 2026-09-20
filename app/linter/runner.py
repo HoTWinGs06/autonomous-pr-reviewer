@@ -134,7 +134,8 @@ def run_linter(file: ChangedFile, content: str) -> LintResult:
     parser = PARSERS.get(file.file_type)
 
     try:
-        client = docker.from_env()
+        # docker-py's containers.run() has no timeout kwarg; set it on the client
+        client = docker.from_env(timeout=DOCKER_TIMEOUT_SECONDS)
     except DockerException as e:
         result.success = False
         result.errors.append(f"Docker connection failed: {e}")
@@ -160,7 +161,6 @@ def run_linter(file: ChangedFile, content: str) -> LintResult:
                 remove=True,
                 stdout=True,
                 stderr=True,
-                timeout=DOCKER_TIMEOUT_SECONDS,
             )
             output_str = output.decode("utf-8", errors="replace")
             result.files_checked = 1

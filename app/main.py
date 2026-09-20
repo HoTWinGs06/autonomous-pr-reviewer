@@ -105,6 +105,7 @@ async def process_pr(payload: WebhookPayload) -> dict:
     # Step 5: Deduplicate and post
     posted = 0
     skipped = 0
+    unique_comments = []
     for comment in review.comments:
         if is_duplicate_comment(repo_name, comment.file_path, comment.line, comment.body):
             logger.info(f"Skipping duplicate: {comment.file_path}:{comment.line}")
@@ -119,14 +120,12 @@ async def process_pr(payload: WebhookPayload) -> dict:
             body=comment.body,
             severity=comment.severity,
         )
+        unique_comments.append(comment)
         posted += 1
 
-    # Post inline comments
-    if review.comments:
-        unique_comments = [
-            c for c in review.comments
-            if not is_duplicate_comment(repo_name, c.file_path, c.line, c.body)
-        ]
+    # Post inline comments (already deduplicated above — do NOT re-filter,
+    # the comments were just saved to the dedup DB)
+    if unique_comments:
         post_result = post_inline_comments(repo_name, pr_number, head_sha, unique_comments)
         logger.info(f"Posted {post_result['posted']} comments, skipped {post_result['skipped']}")
 

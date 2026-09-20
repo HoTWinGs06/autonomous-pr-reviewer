@@ -39,21 +39,22 @@ class TestWebhookPayload:
                 "number": 1,
                 "title": "Test",
                 "state": "open",
-                "head.sha": "abc123",
-                "base.ref": "main",
+                "head": {"sha": "abc123"},
+                "base": {"ref": "main"},
                 "html_url": "https://github.com/o/r/pull/1",
-                "user.login": "joel",
+                "user": {"login": "joel"},
             },
             "repository": {
                 "full_name": "owner/repo",
                 "clone_url": "https://github.com/owner/repo.git",
                 "default_branch": "main",
             },
-            "sender.login": "joel",
+            "sender": {"login": "joel"},
         }
         payload = WebhookPayload.model_validate(data)
         assert payload.action == "opened"
         assert payload.pull_request.number == 1
+        assert payload.pull_request.head_sha == "abc123"
         assert payload.repository.full_name == "owner/repo"
 
 
@@ -68,17 +69,17 @@ class TestWebhookEndpoint:
                 "number": 42,
                 "title": "Test PR",
                 "state": "open",
-                "head.sha": "abc123def456",
-                "base.ref": "main",
+                "head": {"sha": "abc123def456"},
+                "base": {"ref": "main"},
                 "html_url": "https://github.com/o/r/pull/42",
-                "user.login": "joel",
+                "user": {"login": "joel"},
             },
             "repository": {
                 "full_name": "owner/repo",
                 "clone_url": "https://github.com/owner/repo.git",
                 "default_branch": "main",
             },
-            "sender.login": "joel",
+            "sender": {"login": "joel"},
         }).encode()
 
     @staticmethod
@@ -157,13 +158,13 @@ class TestWebhookEndpoint:
             "action": "closed",
             "pull_request": {
                 "number": 1, "title": "x", "state": "closed",
-                "head.sha": "a", "base.ref": "main",
-                "html_url": "x", "user.login": "x",
+                "head": {"sha": "a"}, "base": {"ref": "main"},
+                "html_url": "x", "user": {"login": "x"},
             },
             "repository": {
                 "full_name": "o/r", "clone_url": "x", "default_branch": "main",
             },
-            "sender.login": "x",
+            "sender": {"login": "x"},
         }).encode()
         resp = fresh_client.post(
             "/webhook",
