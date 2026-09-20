@@ -5,7 +5,7 @@ import base64
 import logging
 from typing import List, Optional
 
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 from github.PullRequest import PullRequest
 
 from app.config import AUTO_FIX_ENABLED, GITHUB_TOKEN
@@ -25,7 +25,7 @@ def _get_pr(repo_full_name: str, pr_number: int) -> Optional[PullRequest]:
         logger.error("GITHUB_TOKEN not configured")
         return None
     try:
-        g = Github(GITHUB_TOKEN)
+        g = Github(auth=Auth.Token(GITHUB_TOKEN))
         repo = g.get_repo(repo_full_name)
         return repo.get_pull(pr_number)
     except GithubException as e:

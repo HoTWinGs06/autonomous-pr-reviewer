@@ -80,9 +80,9 @@ Memory Check & GitHub Poster
 - **Web Framework:** FastAPI
 - **GitHub Integration:** PyGithub
 - **LLM Orchestration:** LangChain + OpenAI-compatible API
-- **Static Analysis:** Docker-sandboxed `flake8`, `mypy`, `eslint`
+- **Static Analysis:** Docker-sandboxed `flake8` and `eslint`
 - **Memory:** SQLite
-- **Deployment:** Docker + Docker Compose
+- **Deployment:** Docker Compose, systemd user services, or a reverse proxy with HTTPS
 
 ## Getting Started
 

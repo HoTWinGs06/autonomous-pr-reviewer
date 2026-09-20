@@ -1,8 +1,9 @@
 """FastAPI application — full PR review pipeline."""
 import logging
-from fastapi import FastAPI, Request, HTTPException, Header
+from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from typing import Optional
-from github import Github
+from github import Auth, Github
 
 from app.config import GITHUB_TOKEN, WEBHOOK_SECRET
 from app.webhook.security import verify_signature
@@ -33,7 +34,7 @@ def _fetch_file_contents(repo_full_name: str, pr_number: int, files: list) -> di
     if not GITHUB_TOKEN:
         return contents
     try:
-        g = Github(GITHUB_TOKEN)
+        g = Github(auth=Auth.Token(GITHUB_TOKEN))
         repo = g.get_repo(repo_full_name)
         pr = repo.get_pull(pr_number)
         for f in files:
@@ -51,7 +52,7 @@ def _fetch_file_contents(repo_full_name: str, pr_number: int, files: list) -> di
     return contents
 
 
-async def process_pr(payload: WebhookPayload) -> dict:
+def process_pr(payload: WebhookPayload) -> dict:
     """Full PR review pipeline: diff → lint → LLM → dedup → post."""
     repo_name = payload.repository.full_name
     pr_number = payload.pull_request.number
@@ -61,7 +62,7 @@ async def process_pr(payload: WebhookPayload) -> dict:
     try:
         if not GITHUB_TOKEN or GITHUB_TOKEN == "ghp_your_token_here":
             raise ValueError("GITHUB_TOKEN not configured")
-        g = Github(GITHUB_TOKEN)
+        g = Github(auth=Auth.Token(GITHUB_TOKEN))
         repo = g.get_repo(repo_name)
         pr = repo.get_pull(pr_number)
         raw_files = list(pr.get_files())
@@ -189,7 +190,7 @@ async def github_webhook(
         f"(action={payload.action}, sha={payload.pull_request.head_sha[:7]})"
     )
 
-    result = await process_pr(payload)
+    result = await run_in_threadpool(process_pr, payload)
     return result
 
 
