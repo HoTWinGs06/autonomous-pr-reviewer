@@ -96,7 +96,7 @@ Memory Check & GitHub Poster
 ### Installation
 
 ```bash
-git clone https://github.com/<YOUR_USERNAME>/autonomous-pr-reviewer.git
+git clone https://github.com/HoTWinGs06/autonomous-pr-reviewer.git
 cd autonomous-pr-reviewer
 
 # Copy environment template
@@ -178,23 +178,12 @@ To add new languages, extend `LINTER_CONFIG` in `app/linter/runner.py` with a ne
 
 ## Testing
 
-Run unit tests for individual modules:
+The project ships with a pytest suite covering diff parsing, webhook models, the linter runner, memory dedup, and the review/posting pipeline.
 
 ```bash
-.venv/bin/python -c "from app.diff.parser import classify_file, parse_patch; assert classify_file('main.py')[1] == True; print('OK')"
-.venv/bin/python -c "from app.memory.store import get_stats; print(get_stats())"
-```
-
-Simulate a docs-only PR:
-
-```bash
-.venv/bin/python -c "
-from unittest.mock import MagicMock, patch
-from app.webhook.models import WebhookPayload
-
-payload = WebhookPayload.model_validate({...})  # see test examples in Phase 6
-# Mock approvals and run process_pr(payload)
-"
+# From the repo root (create a venv first if you haven't:
+# python3 -m venv .venv && .venv/bin/pip install -r requirements.txt)
+.venv/bin/python -m pytest -q
 ```
 
 ## Deployment
@@ -206,7 +195,7 @@ payload = WebhookPayload.model_validate({...})  # see test examples in Phase 6
 sudo apt update && sudo apt install -y docker.io docker-compose git
 sudo systemctl enable --now docker
 
-git clone https://github.com/<YOUR_USERNAME>/autonomous-pr-reviewer.git
+git clone https://github.com/HoTWinGs06/autonomous-pr-reviewer.git
 cd autonomous-pr-reviewer
 cp .env.example .env
 # Edit .env
@@ -237,5 +226,3 @@ Please follow [PEP 8](https://peps.python.org/pep-0008/) and run `black .` befor
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
-EOF
-echo "README.md written"
